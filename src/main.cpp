@@ -1,5 +1,5 @@
 #include "etna/etna_core.hpp"
-#include "etna/scene.hpp"
+#include "scene.hpp"
 
 constexpr uint32_t WINDOW_WIDTH{800};
 constexpr uint32_t WINDOW_HEIGHT{600};
