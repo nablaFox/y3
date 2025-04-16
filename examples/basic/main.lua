@@ -1,34 +1,7 @@
-local test_script = y3.create_script({
-    name = "test",
-    start = function(node, data)
-        print(data.test)
-
-        local camera_data = node:get_script_data("camera")
-
-        print(camera_data.speed)
-    end,
-    destroy = function()
-        print("Destroyed script called when the scene is destroyed")
-    end,
-    data = {
-        test = "Idk, something",
-    },
-})
-
+y3.add_global_script("switch_scene", {})
 
 local scene = {
-    y3.create_camera({
-        name = "MainCamera",
-        position = Vec3.new(0, 0, 5),
-        scripts = {
-            y3.script("camera", {
-                speed = 5,
-                fly = true,
-                sensitivity = 0.001,
-            }),
-            test_script,
-        },
-    }),
+    require('entities.camera')(),
 
     y3.create_mesh({
         name = "Sphere",

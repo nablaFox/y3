@@ -31,7 +31,7 @@ public:
 
 	void render(Renderer&, const SceneRenderInfo& = {});
 
-	void applySetupScripts();
+	void applyStartScripts();
 
 	void applyUpdateScripts();
 

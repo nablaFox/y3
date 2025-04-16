@@ -29,4 +29,6 @@ struct Script {
 	CreateInfo m_info;
 };
 
+using ScriptHandle = std::shared_ptr<Script>;
+
 }

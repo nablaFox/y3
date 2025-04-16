@@ -51,7 +51,6 @@ local function update(node, data, dt, _)
         position = position - up * data.speed * dt
     end
 
-
     transform.position = position
     node:update_transform(transform)
 end
@@ -61,8 +60,6 @@ local function start(node, data, _)
     data.speed = 10
 
     print("Hello world from", node:get_name())
-
-    print("Initial Data:", data.speed)
 end
 
 local function sleep(node, data, _)
@@ -71,8 +68,22 @@ local function sleep(node, data, _)
     print("Final Data:", data.speed)
 end
 
-return {
-    start = start,
-    update = update,
-    sleep = sleep,
-}
+return function(camera_data)
+    local camera_script = y3.create_script({
+        name = "camera_script",
+        update = update,
+        start = start,
+        sleep = sleep,
+        data = camera_data or {
+            speed = 10,
+            fly = true,
+            sensitivity = 0.001,
+        },
+    })
+
+    return y3.create_camera({
+        name = "MainCamera",
+        position = Vec3.new(0, 0, 5),
+        scripts = camera_script,
+    })
+end

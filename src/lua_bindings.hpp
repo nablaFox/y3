@@ -1,9 +1,10 @@
 #include "script.hpp"
 #include "scene_graph.hpp"
 
-etna::Script* script(std::string name, sol::table data);
+std::shared_ptr<etna::Script> create_script_from_file(std::string name,
+													  sol::table data);
 
-etna::Script* create_script(sol::table scriptTable);
+std::shared_ptr<etna::Script> create_script(sol::table scriptTable);
 
 etna::SceneNode create_mesh(sol::table params);
 

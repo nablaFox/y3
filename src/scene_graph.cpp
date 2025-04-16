@@ -33,7 +33,7 @@ void _SceneNode::remove() {
 	}
 }
 
-void _SceneNode::addScript(const Script* script) {
+void _SceneNode::addScript(std::shared_ptr<Script> script) {
 	if (script == nullptr)
 		return;
 
@@ -41,11 +41,10 @@ void _SceneNode::addScript(const Script* script) {
 }
 
 void _SceneNode::applyUpdateScripts(Scene* scene) {
-	const float dt = 0.01f;	 // TEMP
-
 	for (const auto& script : m_scripts) {
 		if (script->m_info.onUpdate != nullptr) {
-			script->m_info.onUpdate(this, script->m_info.data, dt, scene);
+			script->m_info.onUpdate(this, script->m_info.data,
+									engine::getDeltaTime(), scene);
 		}
 	}
 

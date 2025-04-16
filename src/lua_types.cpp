@@ -1,5 +1,7 @@
 #include "y3.hpp"
 
+using namespace etna;
+
 void y3::initLuaTypes() {
 	lua.new_usertype<Vec3>(
 		"Vec3", sol::constructors<Vec3(float, float, float)>(),			  //

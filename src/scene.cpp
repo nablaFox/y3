@@ -224,7 +224,7 @@ void Scene::applyUpdateScripts() {
 	}
 }
 
-void Scene::applySetupScripts() {
+void Scene::applyStartScripts() {
 	for (const auto& [_, root] : m_roots) {
 		root->applyCreateScripts(this);
 	}

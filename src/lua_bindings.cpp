@@ -16,20 +16,20 @@ static Transform getTransform(sol::table params) {
 	return transform;
 }
 
-static std::vector<Script*> getScripts(sol::table params) {
-	if (params["scripts"].is<Script*>()) {
+static std::vector<ScriptHandle> getScripts(sol::table params) {
+	if (params["scripts"].is<ScriptHandle>()) {
 		return {params["scripts"]};
 	}
 
 	if (params["scripts"].is<sol::table>()) {
-		std::vector<Script*> scripts;
+		std::vector<ScriptHandle> scripts;
 
 		sol::table scriptTable = params["scripts"];
 
 		for (auto& kv : scriptTable) {
 			sol::object value = kv.second;
-			if (value.is<Script*>()) {
-				scripts.push_back(value.as<Script*>());
+			if (value.is<ScriptHandle>()) {
+				scripts.push_back(value.as<ScriptHandle>());
 			}
 		}
 
@@ -91,7 +91,7 @@ static void loadScriptFunctions(sol::table scriptTable,
 	}
 }
 
-Script* script(std::string name, sol::table data) {
+ScriptHandle create_script_from_file(std::string name, sol::table data) {
 	std::string path = "scripts/" + name + ".lua";
 
 	sol::load_result scriptFile = y3::lua.load_file(path);
@@ -132,17 +132,19 @@ Script* script(std::string name, sol::table data) {
 	loadScriptFunctions(scriptTable, std::move(onCreate), std::move(onUpdate),
 						std::move(onSleep), std::move(onDestroy));
 
-	return new Script({
+	const Script::CreateInfo info{
 		.name = name,
 		.onUpdate = onUpdate,
 		.onStart = onCreate,
 		.onSleep = onSleep,
 		.onDestroy = onDestroy,
 		.data = data,
-	});
+	};
+
+	return std::make_shared<Script>(info);
 }
 
-Script* create_script(sol::table scriptTable) {
+ScriptHandle create_script(sol::table scriptTable) {
 	sol::function update = scriptTable["update"];
 	sol::function start = scriptTable["start"];
 	sol::function sleep = scriptTable["sleep"];
@@ -160,14 +162,17 @@ Script* create_script(sol::table scriptTable) {
 	loadScriptFunctions(scriptTable, std::move(onCreate), std::move(onUpdate),
 						std::move(onSleep), std::move(onDestroy));
 
-	return new Script({
+	const Script::CreateInfo info{
 		.name = scriptTable["name"],
 		.onUpdate = onUpdate,
 		.onStart = onCreate,
 		.onSleep = onSleep,
 		.onDestroy = onDestroy,
 		.data = data,
-	});
+
+	};
+
+	return std::make_shared<Script>(info);
 }
 
 SceneNode create_mesh(sol::table params) {

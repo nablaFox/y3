@@ -10,7 +10,6 @@
 
 namespace etna {
 
-struct _SceneNode;
 using SceneNode = std::shared_ptr<_SceneNode>;
 
 struct _SceneNode {
@@ -29,7 +28,7 @@ struct _SceneNode {
 
 	void remove();
 
-	void addScript(const Script*);
+	void addScript(std::shared_ptr<Script> script);
 
 	void applyCreateScripts(Scene*);
 
@@ -75,7 +74,7 @@ protected:
 
 	_SceneNode* m_parent{nullptr};
 	std::vector<SceneNode> m_children;
-	std::vector<const Script*> m_scripts;
+	std::vector<std::shared_ptr<Script>> m_scripts;
 
 	void updateChildrenTransform(const Mat4&);
 };
@@ -114,7 +113,7 @@ struct MeshNodeCreateInfo {
 	MeshHandle mesh;
 	MaterialHandle material{nullptr};
 	Transform transform;
-	std::vector<Script*> scripts;
+	std::vector<std::shared_ptr<Script>> scripts;
 	ignis::BufferId instanceBuffer{IGNIS_INVALID_BUFFER_ID};
 	uint32_t instanceCount{1};
 };
@@ -125,7 +124,7 @@ struct CameraNodeCreateInfo {
 	Viewport viewport{0, 0, 0, 0};
 	RenderTarget* renderTarget{nullptr};
 	Transform transform;
-	std::vector<Script*> scripts;
+	std::vector<std::shared_ptr<Script>> scripts;
 };
 
 SceneNode createRoot(const std::string&, const Transform& = {});

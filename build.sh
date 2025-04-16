@@ -7,4 +7,4 @@ CXX_FLAGS="-Ietna-linux_amd64/include -Isol -Letna-linux_amd64/lib"
 LIBS="-lm -letna -lglfw3 -lvulkan -lX11 -llua"
 SRC="src/*.cpp"
 
-$CXX -g $CXX_FLAGS -o bin/y3 $SRC $LIBS
+$CXX $CXX_FLAGS -o bin/y3 $SRC $LIBS
