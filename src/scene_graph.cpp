@@ -156,6 +156,7 @@ CameraNode scene::createCameraNode(const CameraNodeCreateInfo& info) {
 	node->viewport = info.viewport;
 	node->renderTarget = info.renderTarget;
 	node->camera->updateTransform(info.transform);
+	node->updateTransform(info.transform);
 
 	return node;
 }

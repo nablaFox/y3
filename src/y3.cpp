@@ -29,6 +29,18 @@ y3::y3(uint32_t width, uint32_t height) {
 	y3_table.set_function("create_grid_material", create_grid_material);
 	y3_table.set_function("get_sphere", engine::getSphere);
 
+	y3_table.set_function("is_key_down", [](int key) {
+		return g_window->isKeyPressed(static_cast<Key>(key));
+	});
+
+	y3_table.set_function("mouse_x", []() { return g_window->getMouseX(); });
+
+	y3_table.set_function("mouse_y", []() { return g_window->getMouseY(); });
+
+	y3_table.set_function("mouse_dx", []() { return g_window->mouseDeltaX(); });
+
+	y3_table.set_function("mouse_dy", []() { return g_window->mouseDeltaY(); });
+
 	initLuaTypes();
 }
 
