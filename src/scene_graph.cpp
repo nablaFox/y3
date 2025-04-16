@@ -56,8 +56,8 @@ void _SceneNode::applyUpdateScripts(Scene* scene) {
 
 void _SceneNode::applyCreateScripts(Scene* scene) {
 	for (const auto& script : m_scripts) {
-		if (script->m_info.onCreate != nullptr) {
-			script->m_info.onCreate(this, script->m_info.data, scene);
+		if (script->m_info.onStart != nullptr) {
+			script->m_info.onStart(this, script->m_info.data, scene);
 		}
 	}
 

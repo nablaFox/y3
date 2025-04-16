@@ -10,13 +10,17 @@ struct _SceneNode;
 class Scene;
 
 struct Script {
+	using HookFunc = std::function<void(_SceneNode*, sol::table, Scene* const)>;
+
+	using UpdateFunc =
+		std::function<void(_SceneNode*, sol::table, float dt, Scene* const)>;
+
 	struct CreateInfo {
 		std::string name;
-		std::function<void(_SceneNode*, sol::table, float dt, Scene* const)>
-			onUpdate;
-		std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
-		std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
-		std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
+		UpdateFunc onUpdate;
+		HookFunc onStart;
+		HookFunc onSleep;
+		HookFunc onDestroy;
 		sol::table data;
 	};
 
