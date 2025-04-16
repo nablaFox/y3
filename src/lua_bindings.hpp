@@ -118,6 +118,61 @@ inline etna::Script* script(std::string name, sol::table data) {
 	});
 }
 
+inline etna::Script* create_script(sol::table scriptTable) {
+	sol::function update = scriptTable["update"];
+	sol::function start = scriptTable["start"];
+	sol::function sleep = scriptTable["sleep"];
+	sol::table data = scriptTable["data"];
+
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onCreate;
+
+	if (start.valid()) {
+		onCreate = [start](etna::_SceneNode* node, sol::table data,
+						   etna::Scene* scene) {
+			sol::protected_function_result result = start(node, data, scene);
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cerr << "Error in start: " << err.what() << std::endl;
+			}
+		};
+	}
+
+	std::function<void(etna::_SceneNode*, sol::table, float, etna::Scene* const)>
+		onUpdate;
+
+	if (update.valid()) {
+		onUpdate = [update](etna::_SceneNode* node, sol::table data, float dt,
+							etna::Scene* scene) {
+			sol::protected_function_result result = update(node, data, dt, scene);
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cerr << "Error in update: " << err.what() << std::endl;
+			}
+		};
+	}
+
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onDestroy;
+
+	if (sleep.valid()) {
+		onDestroy = [sleep](etna::_SceneNode* node, sol::table data,
+							etna::Scene* scene) {
+			sol::protected_function_result result = sleep(node, data, scene);
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cerr << "Error in sleep: " << err.what() << std::endl;
+			}
+		};
+	}
+
+	return new etna::Script({
+		.name = scriptTable["name"],
+		.onUpdate = onUpdate,
+		.onCreate = onCreate,
+		.onDestroy = onDestroy,
+		.data = data,
+	});
+}
+
 inline SceneNode create_mesh(sol::table params) {
 	scene::MeshNodeCreateInfo info{
 		.name = params["name"],

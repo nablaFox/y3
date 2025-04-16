@@ -1,3 +1,18 @@
+local test_script = y3.create_script({
+    name = "test",
+    start = function(node, data, dt, _)
+        print(data.test)
+
+        local camera_data = node:get_script_data("camera")
+
+        print(camera_data.speed)
+    end,
+    data = {
+        test = "Idk, something",
+    },
+})
+
+
 local scene = {
     y3.create_camera({
         name = "MainCamera",
@@ -8,7 +23,7 @@ local scene = {
                 fly = true,
                 sensitivity = 0.001,
             }),
-            y3.script("test", {}),
+            test_script,
         },
     }),
 
