@@ -6,6 +6,7 @@ namespace fs = std::filesystem;
 using namespace etna;
 
 Window* y3::g_window = nullptr;
+sol::state y3::lua;
 
 y3::y3(uint32_t width, uint32_t height) {
 	etna::engine::init();
@@ -23,9 +24,9 @@ y3::y3(uint32_t width, uint32_t height) {
 
 	y3_table = lua.create_named_table("y3");
 
+	y3_table.set_function("script", script);
 	y3_table.set_function("create_camera", create_camera);
 	y3_table.set_function("create_mesh", create_mesh);
-	y3_table.set_function("create_script", create_script);
 	y3_table.set_function("create_grid_material", create_grid_material);
 	y3_table.set_function("get_sphere", engine::getSphere);
 

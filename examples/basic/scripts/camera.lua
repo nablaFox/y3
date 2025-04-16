@@ -1,4 +1,4 @@
-function update(node, data, dt, scene)
+function Update(node, data, dt, scene)
     local transform = node:get_transform()
 
     transform.yaw = transform.yaw + y3.mouse_dx() * data.sensitivity
@@ -56,32 +56,14 @@ function update(node, data, dt, scene)
     node:update_transform(transform)
 end
 
-function start(node, data, scene)
+function Start(node, data, scene)
     print("Hello world from", node:get_name())
 
     print("Initial Data:", data.speed)
 end
 
-function sleep(node, data, scene)
+function Sleep(node, data, scene)
     print("Goodbye world from", node:get_name())
 
     print("Final Data:", data.speed)
 end
-
-local camera_script = y3.create_script({
-    name = "CameraScript",
-    start = start,
-    sleep = sleep,
-    update = update,
-    data = {
-        speed = 5,
-        sensitivity = 0.001,
-        fly = true,
-    },
-})
-
-return y3.create_camera({
-    name = "MainCamera",
-    scripts = camera_script,
-    position = Vec3.new(0, 0, 5),
-})

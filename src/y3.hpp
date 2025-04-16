@@ -21,9 +21,9 @@ public:
 	void switchScene(const std::string& name);
 
 	static etna::Window* g_window;
+	static sol::state lua;
 
 private:
-	sol::state lua;
 	sol::table y3_table;
 	Scene* m_currScene{nullptr};
 	Renderer* m_renderer{nullptr};

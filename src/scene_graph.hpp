@@ -114,16 +114,18 @@ struct MeshNodeCreateInfo {
 	MeshHandle mesh;
 	MaterialHandle material{nullptr};
 	Transform transform;
+	std::vector<Script*> scripts;
 	ignis::BufferId instanceBuffer{IGNIS_INVALID_BUFFER_ID};
 	uint32_t instanceCount{1};
 };
 
 struct CameraNodeCreateInfo {
 	std::string name;
-	Transform transform;
 	Camera::CreateInfo cameraInfo;
 	Viewport viewport{0, 0, 0, 0};
 	RenderTarget* renderTarget{nullptr};
+	Transform transform;
+	std::vector<Script*> scripts;
 };
 
 SceneNode createRoot(const std::string&, const Transform& = {});

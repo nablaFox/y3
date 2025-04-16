@@ -141,6 +141,10 @@ MeshNode scene::createMeshNode(const MeshNodeCreateInfo& info) {
 	node->instanceCount = info.instanceCount;
 	node->updateTransform(info.transform);
 
+	for (const auto& script : info.scripts) {
+		node->addScript(script);
+	}
+
 	return node;
 }
 
@@ -157,6 +161,10 @@ CameraNode scene::createCameraNode(const CameraNodeCreateInfo& info) {
 	node->renderTarget = info.renderTarget;
 	node->camera->updateTransform(info.transform);
 	node->updateTransform(info.transform);
+
+	for (const auto& script : info.scripts) {
+		node->addScript(script);
+	}
 
 	return node;
 }

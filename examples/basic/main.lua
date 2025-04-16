@@ -1,5 +1,16 @@
 local scene = {
-    require('camera'),
+    y3.create_camera({
+        name = "MainCamera",
+        position = Vec3.new(0, 0, 5),
+        scripts = {
+            y3.script("camera", {
+                speed = 5,
+                fly = true,
+                sensitivity = 0.001,
+            }),
+            y3.script("test", {})
+        },
+    }),
 
     y3.create_mesh({
         name = "Sphere",
