@@ -18,9 +18,9 @@ public:
 	Scene();
 	~Scene();
 
-	SceneNode addNode(SceneNode, const Transform& = {}, std::string = "");
-	MeshNode addMesh(MeshNode, const Transform& = {});
-	CameraNode addCamera(CameraNode, const Transform& = {});
+	SceneNode addNode(SceneNode);
+	MeshNode addMesh(MeshNode);
+	CameraNode addCamera(CameraNode);
 
 	SceneNode getNode(const std::string& name) const;
 	void removeNode(const std::string& name);

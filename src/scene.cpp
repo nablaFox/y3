@@ -14,16 +14,11 @@ Scene::~Scene() {
 	_device.destroyBuffer(m_lightsBuffer);
 }
 
-SceneNode Scene::addNode(SceneNode node,
-						 const Transform& transform,
-						 std::string name) {
+SceneNode Scene::addNode(SceneNode node) {
 	if (node == nullptr)
 		return nullptr;
 
-	node->translate(transform.position);
-	node->rotate(transform.yaw, transform.pitch, transform.roll);
-
-	m_roots[name.empty() ? node->getName() : name] = node;
+	m_roots[node->getName()] = node;
 
 	if (node->getType() == _SceneNode::Type::LIGHT) {
 		m_lightCacheDirty = true;
@@ -52,12 +47,12 @@ SceneNode Scene::addNode(SceneNode node,
 	return node;
 }
 
-MeshNode Scene::addMesh(MeshNode node, const Transform& transform) {
-	return std::static_pointer_cast<_MeshNode>(addNode(node, transform));
+MeshNode Scene::addMesh(MeshNode node) {
+	return std::static_pointer_cast<_MeshNode>(addNode(node));
 }
 
-CameraNode Scene::addCamera(CameraNode node, const Transform& transform) {
-	return std::static_pointer_cast<_CameraNode>(addNode(node, transform));
+CameraNode Scene::addCamera(CameraNode node) {
+	return std::static_pointer_cast<_CameraNode>(addNode(node));
 }
 
 SceneNode Scene::getNode(const std::string& name) const {

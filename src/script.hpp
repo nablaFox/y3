@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <string>
+#include "sol.hpp"
 
 namespace etna {
 
@@ -11,10 +12,11 @@ class Scene;
 struct Script {
 	struct CreateInfo {
 		std::string name;
-		std::function<void(_SceneNode*, void*, float dt, Scene* const)> onUpdate;
-		std::function<void(_SceneNode*, void*, Scene* const)> onCreate;
-		std::function<void(_SceneNode*, void*, Scene* const)> onDestroy;
-		void* const data{nullptr};
+		std::function<void(_SceneNode*, sol::table, float dt, Scene* const)>
+			onUpdate;
+		std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
+		std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
+		sol::table data;
 	};
 
 	Script(const CreateInfo& info) : m_info(info) {}

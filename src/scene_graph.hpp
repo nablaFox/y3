@@ -53,7 +53,7 @@ struct _SceneNode {
 
 	void rotate(float yaw, float pitch, float roll);
 
-	const std::string& getName() const { return m_name; }
+	std::string getName() const { return m_name; }
 
 	Type getType() const { return m_type; }
 

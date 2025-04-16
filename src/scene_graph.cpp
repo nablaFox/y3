@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "etna/engine.hpp"
 #include "scene_graph.hpp"
+#include "scene.hpp"
 
 using namespace etna;
 
@@ -75,16 +76,6 @@ void _SceneNode::applyDestroyScripts(Scene* scene) {
 	for (const auto& child : m_children) {
 		child->applyDestroyScripts(scene);
 	}
-}
-
-void* _SceneNode::getScriptData(const std::string& name) const {
-	for (const auto& script : m_scripts) {
-		if (script->m_info.name == name) {
-			return const_cast<void*>(script->m_info.data);
-		}
-	}
-
-	return nullptr;
 }
 
 void _SceneNode::updateChildrenTransform(const Mat4& transform) {
