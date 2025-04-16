@@ -20,14 +20,16 @@ public:
 
 	void switchScene(const std::string& name);
 
+	void destroyScene(const std::string& name);
+
 	static etna::Window* g_window;
 	static sol::state lua;
 
 private:
 	sol::table y3_table;
-	Scene* m_currScene{nullptr};
 	Renderer* m_renderer{nullptr};
-	std::unordered_map<std::string, etna::Scene*> m_scenes;
+	Scene* m_currScene{nullptr};
+	std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;
 
 public:
 	y3(const y3&) = delete;

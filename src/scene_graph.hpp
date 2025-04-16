@@ -35,6 +35,8 @@ struct _SceneNode {
 
 	void applyUpdateScripts(Scene*);
 
+	void applySleepScripts(Scene*);
+
 	void applyDestroyScripts(Scene*);
 
 	sol::table getScriptData(const std::string& name) const;
@@ -80,8 +82,6 @@ protected:
 
 struct _MeshNode : public _SceneNode {
 	using _SceneNode::_SceneNode;
-
-	~_MeshNode();
 
 	MaterialHandle material;
 	MeshHandle mesh;

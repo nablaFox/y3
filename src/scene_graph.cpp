@@ -66,6 +66,18 @@ void _SceneNode::applyCreateScripts(Scene* scene) {
 	}
 }
 
+void _SceneNode::applySleepScripts(Scene* scene) {
+	for (const auto& script : m_scripts) {
+		if (script->m_info.onSleep != nullptr) {
+			script->m_info.onSleep(this, script->m_info.data, scene);
+		}
+	}
+
+	for (const auto& child : m_children) {
+		child->applySleepScripts(scene);
+	}
+}
+
 void _SceneNode::applyDestroyScripts(Scene* scene) {
 	for (const auto& script : m_scripts) {
 		if (script->m_info.onDestroy != nullptr) {
@@ -156,10 +168,6 @@ MeshNode scene::createMeshNode(const MeshNodeCreateInfo& info) {
 	}
 
 	return node;
-}
-
-_MeshNode::~_MeshNode() {
-	_device.destroyBuffer(instanceBuffer);
 }
 
 CameraNode scene::createCameraNode(const CameraNodeCreateInfo& info) {

@@ -68,6 +68,7 @@ inline etna::Script* script(std::string name, sol::table data) {
 	sol::function update = scriptTable["update"];
 	sol::function start = scriptTable["start"];
 	sol::function sleep = scriptTable["sleep"];
+	sol::function destroy = scriptTable["destroy"];
 
 	std::function<void(etna::_SceneNode*, sol::table, float, etna::Scene* const)>
 		onUpdate;
@@ -96,11 +97,11 @@ inline etna::Script* script(std::string name, sol::table data) {
 		};
 	}
 
-	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onDestroy;
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onSleep;
 
 	if (sleep.valid()) {
-		onDestroy = [sleep](etna::_SceneNode* node, sol::table data,
-							etna::Scene* scene) {
+		onSleep = [sleep](etna::_SceneNode* node, sol::table data,
+						  etna::Scene* scene) {
 			sol::protected_function_result result = sleep(node, data, scene);
 			if (!result.valid()) {
 				sol::error err = result;
@@ -109,10 +110,24 @@ inline etna::Script* script(std::string name, sol::table data) {
 		};
 	}
 
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onDestroy;
+
+	if (destroy.valid()) {
+		onDestroy = [destroy](etna::_SceneNode* node, sol::table data,
+							  etna::Scene* scene) {
+			sol::protected_function_result result = destroy(node, data, scene);
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cerr << "Error in destroy: " << err.what() << std::endl;
+			}
+		};
+	}
+
 	return new etna::Script({
 		.name = name,
 		.onUpdate = onUpdate,
 		.onCreate = onCreate,
+		.onSleep = onSleep,
 		.onDestroy = onDestroy,
 		.data = data,
 	});
@@ -122,6 +137,7 @@ inline etna::Script* create_script(sol::table scriptTable) {
 	sol::function update = scriptTable["update"];
 	sol::function start = scriptTable["start"];
 	sol::function sleep = scriptTable["sleep"];
+	sol::function destroy = scriptTable["destroy"];
 	sol::table data = scriptTable["data"];
 
 	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onCreate;
@@ -151,11 +167,11 @@ inline etna::Script* create_script(sol::table scriptTable) {
 		};
 	}
 
-	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onDestroy;
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onSleep;
 
 	if (sleep.valid()) {
-		onDestroy = [sleep](etna::_SceneNode* node, sol::table data,
-							etna::Scene* scene) {
+		onSleep = [sleep](etna::_SceneNode* node, sol::table data,
+						  etna::Scene* scene) {
 			sol::protected_function_result result = sleep(node, data, scene);
 			if (!result.valid()) {
 				sol::error err = result;
@@ -164,10 +180,24 @@ inline etna::Script* create_script(sol::table scriptTable) {
 		};
 	}
 
+	std::function<void(etna::_SceneNode*, sol::table, etna::Scene* const)> onDestroy;
+
+	if (destroy.valid()) {
+		onDestroy = [destroy](etna::_SceneNode* node, sol::table data,
+							  etna::Scene* scene) {
+			sol::protected_function_result result = destroy(node, data, scene);
+			if (!result.valid()) {
+				sol::error err = result;
+				std::cerr << "Error in destroy: " << err.what() << std::endl;
+			}
+		};
+	}
+
 	return new etna::Script({
 		.name = scriptTable["name"],
 		.onUpdate = onUpdate,
 		.onCreate = onCreate,
+		.onSleep = onSleep,
 		.onDestroy = onDestroy,
 		.data = data,
 	});

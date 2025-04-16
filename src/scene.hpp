@@ -31,11 +31,13 @@ public:
 
 	void render(Renderer&, const SceneRenderInfo& = {});
 
-	void setupNodes();
+	void applySetupScripts();
 
-	void updateNodes();
+	void applyUpdateScripts();
 
-	void destroyNodes();
+	void applySleepScripts();
+
+	void applyDestroyScripts();
 
 public:
 	const std::unordered_map<std::string, SceneNode>& getNodes() const {

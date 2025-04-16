@@ -10,6 +10,8 @@ Scene::Scene()
 		  _device.createUBO(sizeof(ignis::BufferId) * Scene::MAX_LIGHTS)) {}
 
 Scene::~Scene() {
+	applyDestroyScripts();
+
 	_device.destroyBuffer(m_sceneBuffer);
 	_device.destroyBuffer(m_lightsBuffer);
 }
@@ -216,19 +218,25 @@ void Scene::render(Renderer& renderer, const SceneRenderInfo& info) {
 	}
 }
 
-void Scene::updateNodes() {
+void Scene::applyUpdateScripts() {
 	for (const auto& [_, root] : m_roots) {
 		root->applyUpdateScripts(this);
 	}
 }
 
-void Scene::setupNodes() {
+void Scene::applySetupScripts() {
 	for (const auto& [_, root] : m_roots) {
 		root->applyCreateScripts(this);
 	}
 }
 
-void Scene::destroyNodes() {
+void Scene::applySleepScripts() {
+	for (const auto& [_, root] : m_roots) {
+		root->applySleepScripts(this);
+	}
+}
+
+void Scene::applyDestroyScripts() {
 	for (const auto& [_, root] : m_roots) {
 		root->applyDestroyScripts(this);
 	}

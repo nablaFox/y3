@@ -15,6 +15,7 @@ struct Script {
 		std::function<void(_SceneNode*, sol::table, float dt, Scene* const)>
 			onUpdate;
 		std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
+		std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
 		std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
 		sol::table data;
 	};
