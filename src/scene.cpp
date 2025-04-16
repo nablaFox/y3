@@ -60,24 +60,6 @@ CameraNode Scene::addCamera(CameraNode node, const Transform& transform) {
 	return std::static_pointer_cast<_CameraNode>(addNode(node, transform));
 }
 
-MeshNode Scene::createMeshNode(const CreateMeshNodeInfo& info) {
-	return addMesh(scene::createMeshNode(info));
-}
-
-CameraNode Scene::createCameraNode(const CreateCameraNodeInfo& info) {
-	return addCamera(scene::createCameraNode(info));
-}
-
-LightNode Scene::createLightNode(const DirectionalLight::CreateInfo& info) {
-	LightNode lightNode = scene::createLightNode(info);
-
-	m_roots[info.name] = lightNode;
-
-	addNode(lightNode);
-
-	return lightNode;
-}
-
 SceneNode Scene::getNode(const std::string& name) const {
 	const std::string rootName = name.substr(0, name.find('/'));
 	const std::string childName = name.substr(name.find('/') + 1);
@@ -139,56 +121,6 @@ LightNode Scene::getLight(const std::string& name) const {
 	return nullptr;
 }
 
-void Scene::render(Renderer& renderer,
-				   const CameraNode& cameraNode,
-				   const SceneRenderInfo& info) {
-	Viewport vp{info.viewport};
-
-	if (vp.width == 0) {
-		vp.x = 0;
-		vp.width = (float)renderer.getRenderTarget().getExtent().width;
-	}
-
-	if (vp.height == 0) {
-		vp.y = 0;
-		vp.height = (float)renderer.getRenderTarget().getExtent().height;
-	}
-
-	const SceneData sceneData{
-		.ambient = info.ambient,
-		.lights = m_lightsBuffer,
-		.lightCount = static_cast<uint32_t>(getLights().size()),
-	};
-
-	_device.updateBuffer(m_sceneBuffer, &sceneData);
-
-	cameraNode->camera->updateAspect(vp.width / vp.height);
-
-	for (const auto& meshNode : getMeshes()) {
-		if (meshNode->mesh == nullptr)
-			continue;
-
-		const MaterialHandle material = meshNode->material;
-		const MeshHandle mesh = meshNode->mesh;
-		const Mat4 worldMatrix = meshNode->getWorldMatrix();
-
-		renderer.draw({
-			.mesh = mesh,
-			.material = material,
-			.transform = worldMatrix,
-			.viewport = vp,
-			.buff1 = m_sceneBuffer,
-			.buff2 = cameraNode->camera->getDataBuffer(),
-			.instanceBuffer = meshNode->instanceBuffer,
-			.instanceCount = meshNode->instanceCount,
-		});
-	}
-}
-
-const std::unordered_map<std::string, SceneNode>& Scene::getNodes() const {
-	return m_roots;
-}
-
 // TEMP: add caching
 const std::vector<MeshNode>& Scene::getMeshes() const {
 	if (!m_meshCacheDirty)
@@ -233,6 +165,78 @@ const std::vector<LightNode>& Scene::getLights() const {
 	m_lightCacheDirty = false;
 
 	return m_lightCache;
+}
+
+void Scene::render(Renderer& renderer, const SceneRenderInfo& info) {
+	const SceneData sceneData{
+		.ambient = info.ambient,
+		.lights = m_lightsBuffer,
+		.lightCount = static_cast<uint32_t>(getLights().size()),
+	};
+
+	_device.updateBuffer(m_sceneBuffer, &sceneData);
+
+	for (const auto& cameraNode : getCameras()) {
+		RenderTarget* target = cameraNode->renderTarget;
+		Viewport vp{cameraNode->viewport};
+
+		if (target == nullptr)
+			continue;
+
+		renderer.beginFrame(*target);
+
+		if (vp.width == 0) {
+			vp.x = 0;
+			vp.width = (float)target->getExtent().width;
+		}
+
+		if (vp.height == 0) {
+			vp.y = 0;
+			vp.height = (float)target->getExtent().height;
+		}
+
+		cameraNode->camera->updateAspect(vp.width / vp.height);
+
+		for (const auto& meshNode : getMeshes()) {
+			if (meshNode->mesh == nullptr)
+				continue;
+
+			const MaterialHandle material = meshNode->material;
+			const MeshHandle mesh = meshNode->mesh;
+			const Mat4 worldMatrix = meshNode->getWorldMatrix();
+
+			renderer.draw({
+				.mesh = mesh,
+				.material = material,
+				.transform = worldMatrix,
+				.viewport = vp,
+				.buff1 = m_sceneBuffer,
+				.buff2 = cameraNode->camera->getDataBuffer(),
+				.instanceBuffer = meshNode->instanceBuffer,
+				.instanceCount = meshNode->instanceCount,
+			});
+		}
+
+		renderer.endFrame();
+	}
+}
+
+void Scene::updateNodes() {
+	for (const auto& [_, root] : m_roots) {
+		root->applyUpdateScripts(this);
+	}
+}
+
+void Scene::setupNodes() {
+	for (const auto& [_, root] : m_roots) {
+		root->applyCreateScripts(this);
+	}
+}
+
+void Scene::destroyNodes() {
+	for (const auto& [_, root] : m_roots) {
+		root->applyDestroyScripts(this);
+	}
 }
 
 void Scene::print() const {

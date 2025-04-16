@@ -4,13 +4,8 @@
 
 using namespace etna;
 
-_SceneNode::_SceneNode(Type type,
-					   const std::string& name,
-					   const Transform& transform)
-	: m_transform(transform),
-	  m_worldMatrix(transform.getWorldMatrix()),
-	  m_name(name),
-	  m_type(type) {}
+_SceneNode::_SceneNode(Type type, const std::string& name)
+	: m_name(name), m_type(type) {}
 
 SceneNode _SceneNode::add(SceneNode node) {
 	if (node == nullptr)
@@ -19,24 +14,6 @@ SceneNode _SceneNode::add(SceneNode node) {
 	SceneNode newNode = m_children.emplace_back(node);
 	newNode->m_parent = this;
 	return newNode;
-}
-
-MeshNode _SceneNode::createMeshNode(const CreateMeshNodeInfo& info) {
-	MeshNode node = scene::createMeshNode(info);
-	add(node);
-	return node;
-}
-
-CameraNode _SceneNode::createCameraNode(const CreateCameraNodeInfo& info) {
-	CameraNode node = scene::createCameraNode(info);
-	add(node);
-	return node;
-}
-
-LightNode _SceneNode::createLightNode(const DirectionalLight::CreateInfo& info) {
-	LightNode node = scene::createLightNode(info);
-	add(node);
-	return node;
 }
 
 void _SceneNode::remove() {
@@ -53,6 +30,61 @@ void _SceneNode::remove() {
 			break;
 		}
 	}
+}
+
+void _SceneNode::addScript(const Script* script) {
+	if (script == nullptr)
+		return;
+
+	m_scripts.push_back(script);
+}
+
+void _SceneNode::applyUpdateScripts(Scene* scene) {
+	const float dt = 0.01f;	 // TEMP
+
+	for (const auto& script : m_scripts) {
+		if (script->m_info.onUpdate != nullptr) {
+			script->m_info.onUpdate(this, script->m_info.data, dt, scene);
+		}
+	}
+
+	for (const auto& child : m_children) {
+		child->applyUpdateScripts(scene);
+	}
+}
+
+void _SceneNode::applyCreateScripts(Scene* scene) {
+	for (const auto& script : m_scripts) {
+		if (script->m_info.onCreate != nullptr) {
+			script->m_info.onCreate(this, script->m_info.data, scene);
+		}
+	}
+
+	for (const auto& child : m_children) {
+		child->applyCreateScripts(scene);
+	}
+}
+
+void _SceneNode::applyDestroyScripts(Scene* scene) {
+	for (const auto& script : m_scripts) {
+		if (script->m_info.onDestroy != nullptr) {
+			script->m_info.onDestroy(this, script->m_info.data, scene);
+		}
+	}
+
+	for (const auto& child : m_children) {
+		child->applyDestroyScripts(scene);
+	}
+}
+
+void* _SceneNode::getScriptData(const std::string& name) const {
+	for (const auto& script : m_scripts) {
+		if (script->m_info.name == name) {
+			return const_cast<void*>(script->m_info.data);
+		}
+	}
+
+	return nullptr;
 }
 
 void _SceneNode::updateChildrenTransform(const Mat4& transform) {
@@ -102,21 +134,21 @@ void _SceneNode::rotate(float yaw, float pitch, float roll) {
 }
 
 SceneNode scene::createRoot(const std::string& name, const Transform& transform) {
-	return std::make_shared<_SceneNode>(_SceneNode::Type::ROOT, name, transform);
+	return std::make_shared<_SceneNode>(_SceneNode::Type::ROOT, name);
 }
 
 SceneNode scene::loadFromFile(const std::string& path) {
 	throw std::runtime_error("Not implemented");
 }
 
-MeshNode scene::createMeshNode(const CreateMeshNodeInfo& info) {
-	MeshNode node = std::make_shared<_MeshNode>(_SceneNode::Type::MESH, info.name,
-												info.transform);
+MeshNode scene::createMeshNode(const MeshNodeCreateInfo& info) {
+	MeshNode node = std::make_shared<_MeshNode>(_SceneNode::Type::MESH, info.name);
 
 	node->mesh = info.mesh;
 	node->material = info.material;
 	node->instanceBuffer = info.instanceBuffer;
 	node->instanceCount = info.instanceCount;
+	node->updateTransform(info.transform);
 
 	return node;
 }
@@ -125,19 +157,21 @@ _MeshNode::~_MeshNode() {
 	_device.destroyBuffer(instanceBuffer);
 }
 
-CameraNode scene::createCameraNode(const CreateCameraNodeInfo& info) {
-	CameraNode node = std::make_shared<_CameraNode>(_SceneNode::Type::CAMERA,
-													info.name, info.transform);
+CameraNode scene::createCameraNode(const CameraNodeCreateInfo& info) {
+	CameraNode node =
+		std::make_shared<_CameraNode>(_SceneNode::Type::CAMERA, info.name);
 
 	node->camera = std::shared_ptr<Camera>(new Camera(info.cameraInfo));
+	node->viewport = info.viewport;
+	node->renderTarget = info.renderTarget;
 	node->camera->updateTransform(info.transform);
 
 	return node;
 }
 
 LightNode scene::createLightNode(const DirectionalLight::CreateInfo& info) {
-	LightNode node = std::make_shared<_LightNode>(_SceneNode::Type::LIGHT, info.name,
-												  Transform{});
+	LightNode node =
+		std::make_shared<_LightNode>(_SceneNode::Type::LIGHT, info.name);
 
 	node->light = std::make_shared<DirectionalLight>(info);
 
