@@ -44,7 +44,8 @@ void y3::initLuaTypes() {
 								 "translate", &_SceneNode::translate,  //
 								 "rotate", &_SceneNode::rotate,		   //
 								 "get_transform", &_SceneNode::getTransform,
-								 "update_transform", &_SceneNode::updateTransform);
+								 "update_transform", &_SceneNode::updateTransform,
+								 "get_script_data", &_SceneNode::getScriptData);
 
 	lua.new_usertype<etna::Color>(
 		"Color", sol::constructors<>(),	   //

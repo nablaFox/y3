@@ -1,4 +1,4 @@
-function Update(node, data, dt, scene)
+local function update(node, data, dt, _)
     local transform = node:get_transform()
 
     transform.yaw = transform.yaw + y3.mouse_dx() * data.sensitivity
@@ -56,14 +56,23 @@ function Update(node, data, dt, scene)
     node:update_transform(transform)
 end
 
-function Start(node, data, scene)
+local function start(node, data, _)
+    data.fly = true
+    data.speed = 10
+
     print("Hello world from", node:get_name())
 
     print("Initial Data:", data.speed)
 end
 
-function Sleep(node, data, scene)
+local function sleep(node, data, _)
     print("Goodbye world from", node:get_name())
 
     print("Final Data:", data.speed)
 end
+
+return {
+    start = start,
+    update = update,
+    sleep = sleep,
+}

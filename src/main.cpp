@@ -7,7 +7,15 @@ constexpr uint32_t WINDOW_HEIGHT{600};
 using namespace etna;
 
 int main(int argc, char** argv) {
-	y3 app(WINDOW_WIDTH, WINDOW_HEIGHT);
+	uint32_t width = WINDOW_WIDTH;
+	uint32_t height = WINDOW_HEIGHT;
+
+	if (argc == 3) {
+		width = std::stoi(argv[1]);
+		height = std::stoi(argv[2]);
+	}
+
+	y3 app(width, height);
 
 	try {
 		app.switchScene("main");

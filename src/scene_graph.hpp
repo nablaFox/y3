@@ -37,7 +37,7 @@ struct _SceneNode {
 
 	void applyDestroyScripts(Scene*);
 
-	void* getScriptData(const std::string& name) const;
+	sol::table getScriptData(const std::string& name) const;
 
 	bool isRoot() const { return m_parent == nullptr; }
 

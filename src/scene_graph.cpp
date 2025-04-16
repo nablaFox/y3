@@ -78,6 +78,16 @@ void _SceneNode::applyDestroyScripts(Scene* scene) {
 	}
 }
 
+sol::table _SceneNode::getScriptData(const std::string& name) const {
+	for (const auto& script : m_scripts) {
+		if (script->m_info.name == name) {
+			return script->m_info.data;
+		}
+	}
+
+	return sol::table();
+}
+
 void _SceneNode::updateChildrenTransform(const Mat4& transform) {
 	if (m_type == Type::CAMERA) {
 		_CameraNode* cameraNode = static_cast<_CameraNode*>(this);

@@ -8,7 +8,7 @@ local scene = {
                 fly = true,
                 sensitivity = 0.001,
             }),
-            y3.script("test", {})
+            y3.script("test", {}),
         },
     }),
 
