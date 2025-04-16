@@ -1,14 +1,10 @@
-local function start(node, _, _)
-    print("Hello world from", node:get_name())
-
-    local data = node:get_script_data("camera")
-
-    data.speed = 1.0
-    data.fly = false
-
-    print("Initial Data:", data.speed)
+local function start(node, data, _)
+    data.test = "Idk, something"
 end
 
 return {
     start = start,
+    update = function(node, data, dt, _)
+        print(data.test)
+    end,
 }
