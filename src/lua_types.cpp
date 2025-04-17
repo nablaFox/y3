@@ -4,10 +4,10 @@ using namespace etna;
 
 void y3::initLuaTypes() {
 	m_lua.new_usertype<Vec3>(
-		"Vec3", sol::constructors<Vec3(float, float, float)>(),			  //
-		"x", sol::property([](const Vec3& v) -> float { return v[0]; }),  //
-		"y", sol::property([](const Vec3& v) -> float { return v[1]; }),  //
-		"z", sol::property([](const Vec3& v) -> float { return v[2]; }),  //
+		"Vec3", sol::constructors<Vec3(float, float, float), Vec3(float)>(),  //
+		"x", sol::property([](const Vec3& v) -> float { return v[0]; }),	  //
+		"y", sol::property([](const Vec3& v) -> float { return v[1]; }),	  //
+		"z", sol::property([](const Vec3& v) -> float { return v[2]; }),	  //
 		sol::meta_function::addition,
 		[](const Vec3& a, const Vec3& b) {
 			return Vec3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
@@ -25,15 +25,32 @@ void y3::initLuaTypes() {
 				return Vec3(a[0] * scalar, a[1] * scalar, a[2] * scalar);
 			}));
 
-	m_lua.new_usertype<Transform>("Transform",						 //
-								  "position", &Transform::position,	 //
-								  "yaw", &Transform::yaw,			 //
-								  "pitch", &Transform::pitch,		 //
-								  "roll", &Transform::roll,			 //
-								  "scale", &Transform::scale,		 //
-								  "forward", &Transform::forward,	 //
-								  "right", &Transform::right,		 //
-								  "up", &Transform::up);
+	m_lua.new_usertype<Transform>(
+		"Transform",  //
+		sol::no_constructor, "new", sol::factories([](sol::table t) {
+			Transform tr;
+
+			if (auto p = t["position"].get_or<sol::optional<Vec3>>(Vec3{}))
+				tr.position = *p;
+			if (auto y = t["yaw"].get_or<sol::optional<float>>(0))
+				tr.yaw = *y;
+			if (auto p = t["pitch"].get_or<sol::optional<float>>(0))
+				tr.pitch = *p;
+			if (auto r = t["roll"].get_or<sol::optional<float>>(0))
+				tr.roll = *r;
+			if (auto s = t["scale"].get_or<sol::optional<Vec3>>(Vec3{1, 1, 1}))
+				tr.scale = *s;
+
+			return tr;
+		}),
+		"position", &Transform::position,  //
+		"yaw", &Transform::yaw,			   //
+		"pitch", &Transform::pitch,		   //
+		"roll", &Transform::roll,		   //
+		"scale", &Transform::scale,		   //
+		"forward", &Transform::forward,	   //
+		"right", &Transform::right,		   //
+		"up", &Transform::up);
 
 	m_lua.new_usertype<_CameraNode>("CameraNode", sol::base_classes,
 									sol::bases<_SceneNode>());
@@ -47,14 +64,15 @@ void y3::initLuaTypes() {
 								   "rotate", &_SceneNode::rotate,		 //
 								   "get_transform", &_SceneNode::getTransform,
 								   "update_transform", &_SceneNode::updateTransform,
-								   "get_script_data", &_SceneNode::getScriptData);
+								   "get_script_data", &_SceneNode::getScriptData,
+								   "add", &_SceneNode::add);
 
 	m_lua.new_usertype<etna::Color>(
-		"Color", sol::constructors<>(),	   //
-		"r", &etna::Color::r,			   //
-		"g", &etna::Color::g,			   //
-		"b", &etna::Color::b,			   //
-		"a", &etna::Color::a, "setAlpha",  //
+		"Color", sol::constructors<>(),		//
+		"r", &etna::Color::r,				//
+		"g", &etna::Color::g,				//
+		"b", &etna::Color::b,				//
+		"a", &etna::Color::a, "set_alpha",	//
 		&etna::Color::setAlpha, sol::meta_function::multiplication,
 		[](const etna::Color& c, float f) { return c * f; });
 
@@ -66,6 +84,7 @@ void y3::initLuaTypes() {
 	m_lua["PURPLE"] = etna::PURPLE;
 	m_lua["CELESTE"] = etna::CELESTE;
 	m_lua["YELLOW"] = etna::YELLOW;
+	m_lua["INVISIBLE"] = etna::INVISIBLE;
 
 	m_lua["KEY_A"] = etna::KEY_A;
 	m_lua["KEY_B"] = etna::KEY_B;

@@ -20,7 +20,10 @@ struct _SceneNode {
 		LIGHT,
 	};
 
-	_SceneNode(Type, const std::string&);
+	_SceneNode(Type,
+			   const std::string&,
+			   const Transform&,
+			   const std::vector<ScriptHandle>& = {});
 
 	SceneNode add(SceneNode);
 
@@ -67,8 +70,8 @@ struct _SceneNode {
 #endif
 
 protected:
-	Transform m_transform{};
-	Mat4 m_worldMatrix{Mat4::identity()};
+	Transform m_transform;
+	Mat4 m_worldMatrix;
 	std::string m_name;
 	Type m_type;
 
@@ -128,8 +131,6 @@ struct CameraNodeCreateInfo {
 };
 
 SceneNode createRoot(const std::string&, const Transform& = {});
-
-SceneNode loadFromFile(const std::string& path);
 
 MeshNode createMeshNode(const MeshNodeCreateInfo&);
 

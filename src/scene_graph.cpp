@@ -5,8 +5,15 @@
 
 using namespace etna;
 
-_SceneNode::_SceneNode(Type type, const std::string& name)
-	: m_name(name), m_type(type) {}
+_SceneNode::_SceneNode(Type type,
+					   const std::string& name,
+					   const Transform& transform,
+					   const std::vector<ScriptHandle>& scripts)
+	: m_name(name),
+	  m_type(type),
+	  m_transform(transform),
+	  m_worldMatrix(transform.getWorldMatrix()),
+	  m_scripts(scripts) {}
 
 SceneNode _SceneNode::add(SceneNode node) {
 	if (node == nullptr)
@@ -14,6 +21,9 @@ SceneNode _SceneNode::add(SceneNode node) {
 
 	SceneNode newNode = m_children.emplace_back(node);
 	newNode->m_parent = this;
+
+	newNode->updateTransform(newNode->m_transform);
+
 	return newNode;
 }
 
@@ -146,49 +156,36 @@ void _SceneNode::rotate(float yaw, float pitch, float roll) {
 }
 
 SceneNode scene::createRoot(const std::string& name, const Transform& transform) {
-	return std::make_shared<_SceneNode>(_SceneNode::Type::ROOT, name);
-}
-
-SceneNode scene::loadFromFile(const std::string& path) {
-	throw std::runtime_error("Not implemented");
+	return std::make_shared<_SceneNode>(_SceneNode::Type::ROOT, name, transform);
 }
 
 MeshNode scene::createMeshNode(const MeshNodeCreateInfo& info) {
-	MeshNode node = std::make_shared<_MeshNode>(_SceneNode::Type::MESH, info.name);
+	MeshNode node = std::make_shared<_MeshNode>(_SceneNode::Type::MESH, info.name,
+												info.transform, info.scripts);
 
 	node->mesh = info.mesh;
 	node->material = info.material;
 	node->instanceBuffer = info.instanceBuffer;
 	node->instanceCount = info.instanceCount;
-	node->updateTransform(info.transform);
-
-	for (const auto& script : info.scripts) {
-		node->addScript(script);
-	}
 
 	return node;
 }
 
 CameraNode scene::createCameraNode(const CameraNodeCreateInfo& info) {
-	CameraNode node =
-		std::make_shared<_CameraNode>(_SceneNode::Type::CAMERA, info.name);
+	CameraNode node = std::make_shared<_CameraNode>(
+		_SceneNode::Type::CAMERA, info.name, info.transform, info.scripts);
 
 	node->camera = std::shared_ptr<Camera>(new Camera(info.cameraInfo));
 	node->viewport = info.viewport;
 	node->renderTarget = info.renderTarget;
 	node->camera->updateTransform(info.transform);
-	node->updateTransform(info.transform);
-
-	for (const auto& script : info.scripts) {
-		node->addScript(script);
-	}
 
 	return node;
 }
 
 LightNode scene::createLightNode(const DirectionalLight::CreateInfo& info) {
-	LightNode node =
-		std::make_shared<_LightNode>(_SceneNode::Type::LIGHT, info.name);
+	LightNode node = std::make_shared<_LightNode>(_SceneNode::Type::LIGHT, info.name,
+												  Transform{});
 
 	node->light = std::make_shared<DirectionalLight>(info);
 

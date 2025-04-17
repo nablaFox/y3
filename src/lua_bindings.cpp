@@ -3,13 +3,19 @@
 using namespace etna;
 
 static Transform getTransform(sol::table params) {
+	if (params["transform"].is<Transform>()) {
+		return params["transform"];
+	}
+
 	Vec3 defaultPosition{0, 0, 0};
+	Vec3 defaultScale{1, 1, 1};
 
 	const Transform transform{
 		.position = params.get_or("position", defaultPosition),
 		.yaw = params.get_or("yaw", 0.0f),
 		.pitch = params.get_or("pitch", 0.0f),
 		.roll = params.get_or("roll", 0.0f),
+		.scale = params.get_or("scale", defaultScale),
 	};
 
 	return transform;
@@ -108,8 +114,8 @@ ScriptHandle create_script(sol::table scriptTable) {
 SceneNode create_mesh(sol::table params) {
 	scene::MeshNodeCreateInfo info{
 		.name = params["name"],
-		.mesh = params["mesh"],
-		.material = params["material"],
+		.mesh = params["mesh"].get_or<MeshHandle>(nullptr),
+		.material = params["material"].get_or<MaterialHandle>(nullptr),
 		.transform = getTransform(params),
 		.scripts = getScripts(params),
 	};
@@ -134,15 +140,34 @@ SceneNode create_camera(sol::table params) {
 }
 
 MaterialHandle create_grid_material(sol::table params) {
+	Color defaultColor{WHITE};
+	Color defaultGridColor{BLACK};
+
 	engine::GridMaterialParams gridParams{
-		.color = params["color"],
-		.gridColor = params["gridColor"],
-		.gridSpacing = params["gridSpacing"],
-		.thickness = params["thickness"],
+		.color = params["color"].get_or(defaultColor),
+		.gridColor = params["gridColor"].get_or(defaultGridColor),
+		.gridSpacing = params["gridSpacing"].get_or(1.0f),
+		.thickness = params["thickness"].get_or(0.1f),
 	};
 
 	return engine::createGridMaterial(gridParams);
 }
+
+// TEMP: transparent materials will be better handled in the future
+MaterialHandle create_grid_material_transparent(sol::table params) {
+	Color defaultColor{WHITE};
+	Color defaultGridColor{BLACK};
+
+	engine::GridMaterialParams gridParams{
+		.color = params["color"].get_or(defaultColor),
+		.gridColor = params["gridColor"].get_or(defaultGridColor),
+		.gridSpacing = params["gridSpacing"].get_or(1.0f),
+		.thickness = params["thickness"].get_or(0.1f),
+	};
+
+	return engine::createTransparentGridMaterial(gridParams);
+}
+//
 
 MaterialTemplateHandle create_material_template(sol::table params) {
 	std::vector<RawShader> rawShaders;
@@ -254,18 +279,23 @@ void y3::initLuaBindings() {
 	y3_table.set_function("create_script", &create_script);
 	y3_table.set_function("create_camera", &create_camera);
 	y3_table.set_function("create_mesh", &create_mesh);
+	y3_table.set_function("create_root", &scene::createRoot);
 
 	// materials
 	y3_table.set_function("create_material_template", &create_material_template);
 	y3_table.set_function("create_material", &create_material);
 	y3_table.set_function("create_grid_material", &create_grid_material);
+	y3_table.set_function("create_grid_material_transparent",
+						  &create_grid_material_transparent);
 	y3_table.set_function("create_color_material", &engine::createColorMaterial);
+	y3_table.set_function("create_point_material", &engine::createPointMaterial);
 	y3_table.set_function("default_vert_shader", &engine::getDefaultVertShader);
 
 	// primitives
 	y3_table.set_function("get_sphere", engine::getSphere);
 	y3_table.set_function("get_cube", engine::getCube);
 	y3_table.set_function("get_pyramid", engine::getPyramid);
+	y3_table.set_function("get_quad", engine::getQuad);
 
 	// window
 	y3_table.set_function("is_key_down", [](int key) {

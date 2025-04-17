@@ -82,6 +82,6 @@ local camera_script = y3.create_script({
 
 return y3.create_camera({
   name = "default_camera",
-  position = Vec3.new(0, 0, 5),
+  position = Vec3.new(0, 1, 0),
   scripts = camera_script,
 })
