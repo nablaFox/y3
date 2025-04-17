@@ -1,4 +1,4 @@
-local function update(node, data, dt, _)
+local function update(dt, node, data)
   local transform = node:get_transform()
 
   transform.yaw = transform.yaw + y3.mouse_dx() * data.sensitivity

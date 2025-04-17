@@ -53,8 +53,8 @@ void _SceneNode::addScript(std::shared_ptr<Script> script) {
 void _SceneNode::applyUpdateScripts(Scene* scene) {
 	for (const auto& script : m_scripts) {
 		if (script->m_info.onUpdate != nullptr) {
-			script->m_info.onUpdate(this, script->m_info.data,
-									engine::getDeltaTime(), scene);
+			script->m_info.onUpdate(engine::getDeltaTime(), this,
+									script->m_info.data, scene);
 		}
 	}
 

@@ -50,18 +50,15 @@ ScriptHandle create_script(sol::table scriptTable) {
 	sol::function sleep = scriptTable["sleep"];
 	sol::function destroy = scriptTable["destroy"];
 
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
-
-	std::function<void(_SceneNode*, sol::table, float, Scene* const)> onUpdate;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
+	Script::HookFunc onCreate;
+	Script::UpdateFunc onUpdate;
+	Script::HookFunc onSleep;
+	Script::HookFunc onDestroy;
 
 	if (update.valid()) {
-		onUpdate = [update](_SceneNode* node, sol::table data, float dt,
+		onUpdate = [update](float dt, _SceneNode* node, sol::table data,
 							Scene* scene) {
-			sol::protected_function_result result = update(node, data, dt, scene);
+			sol::protected_function_result result = update(dt, node, data, scene);
 			if (!result.valid()) {
 				sol::error err = result;
 				std::cerr << "Error in update: " << err.what() << std::endl;

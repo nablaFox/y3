@@ -51,8 +51,8 @@ void y3::run() {
 
 		for (auto& [_, script] : m_globalScripts) {
 			if (script->m_info.onUpdate != nullptr) {
-				script->m_info.onUpdate(nullptr, script->m_info.data,
-										engine::getDeltaTime(), m_currScene);
+				script->m_info.onUpdate(engine::getDeltaTime(), nullptr,
+										script->m_info.data, m_currScene);
 			}
 		}
 

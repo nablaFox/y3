@@ -13,7 +13,7 @@ struct Script {
 	using HookFunc = std::function<void(_SceneNode*, sol::table, Scene* const)>;
 
 	using UpdateFunc =
-		std::function<void(_SceneNode*, sol::table, float dt, Scene* const)>;
+		std::function<void(float dt, _SceneNode*, sol::table, Scene* const)>;
 
 	struct CreateInfo {
 		std::string name;
