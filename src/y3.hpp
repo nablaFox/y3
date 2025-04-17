@@ -26,6 +26,8 @@ public:
 
 	void removeGlobalScript(const std::string& name);
 
+	sol::table getAsset(const std::string& name);
+
 	static etna::Window* g_window;
 
 private:
@@ -35,6 +37,7 @@ private:
 	etna::Scene* m_currScene{nullptr};
 	std::unordered_map<std::string, std::unique_ptr<etna::Scene>> m_scenes;
 	std::unordered_map<std::string, etna::ScriptHandle> m_globalScripts;
+	std::unordered_map<std::string, sol::table> m_assets;
 
 public:
 	y3(const y3&) = delete;

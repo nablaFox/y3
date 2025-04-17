@@ -38,15 +38,20 @@ static std::vector<ScriptHandle> getScripts(sol::table params) {
 	return {};
 }
 
-static void loadScriptFunctions(sol::table scriptTable,
-								Script::HookFunc&& onCreate,
-								Script::UpdateFunc&& onUpdate,
-								Script::HookFunc&& onSleep,
-								Script::HookFunc&& onDestroy) {
+ScriptHandle create_script(sol::table scriptTable) {
 	sol::function update = scriptTable["update"];
 	sol::function start = scriptTable["start"];
 	sol::function sleep = scriptTable["sleep"];
 	sol::function destroy = scriptTable["destroy"];
+	sol::table data = scriptTable["data"];
+
+	std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
+
+	std::function<void(_SceneNode*, sol::table, float, Scene* const)> onUpdate;
+
+	std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
+
+	std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
 
 	if (update.valid()) {
 		onUpdate = [update](_SceneNode* node, sol::table data, float dt,
@@ -88,25 +93,6 @@ static void loadScriptFunctions(sol::table scriptTable,
 			}
 		};
 	}
-}
-
-ScriptHandle create_script(sol::table scriptTable) {
-	sol::function update = scriptTable["update"];
-	sol::function start = scriptTable["start"];
-	sol::function sleep = scriptTable["sleep"];
-	sol::function destroy = scriptTable["destroy"];
-	sol::table data = scriptTable["data"];
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
-
-	std::function<void(_SceneNode*, sol::table, float, Scene* const)> onUpdate;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
-
-	loadScriptFunctions(scriptTable, std::move(onCreate), std::move(onUpdate),
-						std::move(onSleep), std::move(onDestroy));
 
 	const Script::CreateInfo info{
 		.name = scriptTable["name"],
