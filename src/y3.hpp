@@ -12,6 +12,8 @@ public:
 
 	void run();
 
+	void initLuaBindings();
+
 	void initLuaTypes();
 
 	void removeScene();
@@ -25,9 +27,9 @@ public:
 	void removeGlobalScript(const std::string& name);
 
 	static etna::Window* g_window;
-	static sol::state lua;
 
 private:
+	sol::state m_lua;
 	sol::table y3_table;
 	etna::Renderer* m_renderer{nullptr};
 	etna::Scene* m_currScene{nullptr};

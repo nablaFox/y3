@@ -1,5 +1,4 @@
 #include "y3.hpp"
-#include "lua_bindings.hpp"
 
 using namespace etna;
 
@@ -91,59 +90,6 @@ static void loadScriptFunctions(sol::table scriptTable,
 	}
 }
 
-ScriptHandle create_script_from_file(std::string name, sol::table data) {
-	std::string path = "scripts/" + name + ".lua";
-
-	sol::load_result scriptFile = y3::lua.load_file(path);
-
-	if (!scriptFile.valid()) {
-		sol::error err = scriptFile;
-		std::cerr << "Failed to load script \"" << path << "\": " << err.what()
-				  << std::endl;
-		return nullptr;
-	}
-
-	sol::protected_function scriptFunc = scriptFile;
-	sol::protected_function_result result = scriptFunc();
-	if (!result.valid()) {
-		sol::error err = result;
-		std::cerr << "Error executing script \"" << path << "\": " << err.what()
-				  << std::endl;
-		return nullptr;
-	}
-
-	sol::object scriptReturn = result;
-	if (scriptReturn.get_type() != sol::type::table) {
-		std::cerr << "Script \"" << path << "\" did not return a table."
-				  << std::endl;
-		return nullptr;
-	}
-
-	sol::table scriptTable = scriptReturn.as<sol::table>();
-
-	std::function<void(_SceneNode*, sol::table, float, Scene* const)> onUpdate;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onSleep;
-
-	std::function<void(_SceneNode*, sol::table, Scene* const)> onDestroy;
-
-	loadScriptFunctions(scriptTable, std::move(onCreate), std::move(onUpdate),
-						std::move(onSleep), std::move(onDestroy));
-
-	const Script::CreateInfo info{
-		.name = name,
-		.onUpdate = onUpdate,
-		.onStart = onCreate,
-		.onSleep = onSleep,
-		.onDestroy = onDestroy,
-		.data = data,
-	};
-
-	return std::make_shared<Script>(info);
-}
-
 ScriptHandle create_script(sol::table scriptTable) {
 	sol::function update = scriptTable["update"];
 	sol::function start = scriptTable["start"];
@@ -212,4 +158,48 @@ MaterialHandle create_grid_material(sol::table params) {
 	};
 
 	return engine::createGridMaterial(gridParams);
+}
+
+void y3::initLuaBindings() {
+	y3_table.set_function("add_global_script",
+						  sol::overload([this](ScriptHandle script) {
+							  this->addGlobalScript(script);
+						  }));
+
+	y3_table.set_function("remove_global_script", [this](const std::string& name) {
+		removeGlobalScript(name);
+	});
+
+	y3_table.set_function("create_script", sol::overload(&create_script));
+
+	y3_table.set_function("create_camera", &create_camera);
+
+	y3_table.set_function("switch_scene", [this](const std::string& sceneName) {
+		switchScene(sceneName);
+	});
+
+	y3_table.set_function("destroy_scene", [this](const std::string& sceneName) {
+		destroyScene(sceneName);
+	});
+
+	y3_table.set_function("create_grid_material", create_grid_material);
+	y3_table.set_function("create_color_material", engine::createColorMaterial);
+
+	y3_table.set_function("create_mesh", create_mesh);
+	y3_table.set_function("get_sphere", engine::getSphere);
+	y3_table.set_function("get_cube", engine::getCube);
+	y3_table.set_function("get_pyramid", engine::getPyramid);
+
+	y3_table.set_function("is_key_down", [](int key) {
+		return g_window->isKeyPressed(static_cast<Key>(key));
+	});
+
+	y3_table.set_function("key_clicked", [](int key) {
+		return g_window->isKeyClicked(static_cast<Key>(key));
+	});
+
+	y3_table.set_function("mouse_x", []() { return g_window->getMouseX(); });
+	y3_table.set_function("mouse_y", []() { return g_window->getMouseY(); });
+	y3_table.set_function("mouse_dx", []() { return g_window->mouseDeltaX(); });
+	y3_table.set_function("mouse_dy", []() { return g_window->mouseDeltaY(); });
 }

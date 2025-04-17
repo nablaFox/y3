@@ -1,5 +1,3 @@
-y3.add_global_script("switch_scene", {})
-
 local scene = {
     require('entities.camera')(),
 
