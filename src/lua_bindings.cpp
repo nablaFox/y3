@@ -255,10 +255,9 @@ MaterialHandle create_material(sol::table params) {
 
 void y3::initLuaBindings() {
 	// scene management
-	y3_table.set_function("add_global_script",
-						  sol::overload([this](ScriptHandle script) {
-							  this->addGlobalScript(script);
-						  }));
+	y3_table.set_function("add_global_script", [this](ScriptHandle script) {
+		this->addGlobalScript(script);
+	});
 
 	y3_table.set_function("remove_global_script", [this](const std::string& name) {
 		removeGlobalScript(name);
@@ -276,7 +275,15 @@ void y3::initLuaBindings() {
 	y3_table.set_function("create_script", &create_script);
 	y3_table.set_function("create_camera", &create_camera);
 	y3_table.set_function("create_mesh", &create_mesh);
-	y3_table.set_function("create_root", &scene::createRoot);
+
+	y3_table.set_function(
+		"create_root", sol::overload(
+						   [](const std::string& name) {
+							   return scene::createRoot(name, Transform{});
+						   },
+						   [](const std::string& name, const Transform& transform) {
+							   return scene::createRoot(name, transform);
+						   }));
 
 	// materials
 	y3_table.set_function("create_material_template", &create_material_template);

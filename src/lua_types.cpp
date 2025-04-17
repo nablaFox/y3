@@ -9,21 +9,17 @@ void y3::initLuaTypes() {
 		"y", sol::property([](const Vec3& v) -> float { return v[1]; }),	  //
 		"z", sol::property([](const Vec3& v) -> float { return v[2]; }),	  //
 		sol::meta_function::addition,
-		[](const Vec3& a, const Vec3& b) {
-			return Vec3(a[0] + b[0], a[1] + b[1], a[2] + b[2]);
-		},
+		[](const Vec3& a, const Vec3& b) { return Vec3{a + b}; },
 		sol::meta_function::subtraction,
-		[](const Vec3& a, const Vec3& b) {
-			return Vec3(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-		},
+		[](const Vec3& a, const Vec3& b) { return Vec3{a - b}; },
+		sol::meta_function::division,
+		[](const Vec3& a, float scalar) { return Vec3{a / scalar}; },
+
 		sol::meta_function::multiplication,
-		sol::overload(
-			[](const Vec3& a, float scalar) {
-				return Vec3(a[0] * scalar, a[1] * scalar, a[2] * scalar);
-			},
-			[](float scalar, const Vec3& a) {
-				return Vec3(a[0] * scalar, a[1] * scalar, a[2] * scalar);
-			}));
+		sol::overload([](const Vec3& a, float scalar) { return Vec3{a * scalar}; },
+					  [](float scalar, const Vec3& a) {
+						  return Vec3(a[0] * scalar, a[1] * scalar, a[2] * scalar);
+					  }));
 
 	m_lua.new_usertype<Transform>(
 		"Transform",  //
@@ -58,14 +54,17 @@ void y3::initLuaTypes() {
 	m_lua.new_usertype<_MeshNode>("MeshNode", sol::base_classes,
 								  sol::bases<_SceneNode>());
 
-	m_lua.new_usertype<_SceneNode>("SceneNode",							 //
-								   "get_name", &_SceneNode::getName,	 //
-								   "translate", &_SceneNode::translate,	 //
-								   "rotate", &_SceneNode::rotate,		 //
-								   "get_transform", &_SceneNode::getTransform,
-								   "update_transform", &_SceneNode::updateTransform,
-								   "get_script_data", &_SceneNode::getScriptData,
-								   "add", &_SceneNode::add);
+	m_lua.new_usertype<_SceneNode>(
+		"SceneNode",									   //
+		"get_name", &_SceneNode::getName,				   //
+		"translate", &_SceneNode::translate,			   //
+		"rotate", &_SceneNode::rotate,					   //
+		"get_transform", &_SceneNode::getTransform,		   //
+		"update_transform", &_SceneNode::updateTransform,  //
+		"update_position", &_SceneNode::updatePosition,	   //
+		"get_script_data", &_SceneNode::getScriptData,	   //
+		"add_script", &_SceneNode::addScript,			   //
+		"add", &_SceneNode::add);
 
 	m_lua.new_usertype<etna::Color>(
 		"Color", sol::constructors<>(),		//

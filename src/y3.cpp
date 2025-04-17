@@ -18,7 +18,8 @@ y3::y3(uint32_t width, uint32_t height) {
 
 	m_renderer = new Renderer({});
 
-	m_lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::package);
+	m_lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::package,
+						 sol::lib::io);
 
 	y3_table = m_lua.create_named_table("y3");
 
@@ -103,6 +104,7 @@ void y3::switchScene(const std::string& sceneName) {
 	}
 
 	scene->applyStartScripts();
+	scene->applyUpdateScripts();
 
 	m_currScene = scene.get();
 	m_scenes[sceneName] = std::move(scene);
