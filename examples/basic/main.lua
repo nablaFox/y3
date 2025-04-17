@@ -10,7 +10,6 @@ y3.add_global_script(
         y3.switch_scene("main")
       end
     end,
-    data = {}
   })
 )
 

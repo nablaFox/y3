@@ -17,7 +17,6 @@ public:
 	struct CreateInfo {
 		std::vector<std::string> shaders;
 		std::vector<RawShader> rawShaders;
-		size_t paramsSize{0};  // TODO: reflect this
 		bool enableDepth{true};
 		bool transparency{false};
 		VkPolygonMode polygonMode{VK_POLYGON_MODE_FILL};
@@ -31,15 +30,11 @@ public:
 
 	auto& getPipeline() const { return *m_pipeline; }
 
-	auto getParamsSize() const { return m_paramsSize; }
-
 private:
 	MaterialTemplate(const CreateInfo&);
 
 	std::vector<ignis::Shader*> m_shaders;
 	ignis::Pipeline* m_pipeline{nullptr};
-
-	size_t m_paramsSize{0};
 };
 
 using MaterialTemplateHandle = std::shared_ptr<MaterialTemplate>;
@@ -48,12 +43,13 @@ class Material {
 public:
 	struct CreateInfo {
 		std::shared_ptr<MaterialTemplate> templateHandle;
+		size_t paramsSize{0};
 		const void* params{nullptr};
 	};
 
 	Material(const CreateInfo&);
 
-	Material(const MaterialTemplate::CreateInfo&);
+	Material(const MaterialTemplate::CreateInfo&, size_t paramsSize = 0);
 
 	static std::shared_ptr<Material> create(const CreateInfo&);
 

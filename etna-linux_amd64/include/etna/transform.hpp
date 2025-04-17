@@ -9,8 +9,6 @@ struct Transform {
 	float yaw{0}, pitch{0}, roll{0};
 	Vec3 scale{1, 1, 1};
 
-	Transform() = default;
-
 	static Mat4 getScaleMatrix(Vec3 scale) {
 		return {
 			{scale[0], 0, 0, 0},

@@ -43,7 +43,6 @@ ScriptHandle create_script(sol::table scriptTable) {
 	sol::function start = scriptTable["start"];
 	sol::function sleep = scriptTable["sleep"];
 	sol::function destroy = scriptTable["destroy"];
-	sol::table data = scriptTable["data"];
 
 	std::function<void(_SceneNode*, sol::table, Scene* const)> onCreate;
 
@@ -100,8 +99,7 @@ ScriptHandle create_script(sol::table scriptTable) {
 		.onStart = onCreate,
 		.onSleep = onSleep,
 		.onDestroy = onDestroy,
-		.data = data,
-
+		.data = scriptTable["data"].get_or(sol::table()),
 	};
 
 	return std::make_shared<Script>(info);
@@ -146,7 +144,95 @@ MaterialHandle create_grid_material(sol::table params) {
 	return engine::createGridMaterial(gridParams);
 }
 
+MaterialTemplateHandle create_material_template(sol::table params) {
+	std::vector<RawShader> rawShaders;
+	std::vector<std::string> shaders;
+
+	if (params["shaders"].is<sol::table>()) {
+		sol::table shaderTable = params["shaders"];
+
+		for (const auto& kv : shaderTable) {
+			sol::object value = kv.second;
+
+			if (value.is<RawShader>()) {
+				rawShaders.push_back(value.as<RawShader>());
+			} else if (value.is<std::string>()) {
+				shaders.push_back(value.as<std::string>());
+			}
+		}
+	}
+
+	const MaterialTemplate::CreateInfo info{
+		.shaders = shaders,
+		.rawShaders = rawShaders,
+		.enableDepth = params["enableDepth"].get_or(true),
+		.transparency = params["transparency"].get_or(false),
+		.polygonMode = params["polygonMode"].get_or(VK_POLYGON_MODE_FILL),
+		.lineWidth = params["lineWidth"].get_or(1.0f),
+		.samples = params["samples"].get_or(0u),
+	};
+
+	return MaterialTemplate::create(info);
+}
+
+template <typename T>
+static void append_bytes(std::vector<uint8_t>& buf, const T& v) {
+	const uint8_t* p = reinterpret_cast<const uint8_t*>(&v);
+	buf.insert(buf.end(), p, p + sizeof(T));
+}
+
+MaterialHandle create_material(sol::table params) {
+	sol::object raw = params["params"];
+	if (!raw.valid() || raw.get_type() != sol::type::table) {
+		throw std::runtime_error{
+			"create_material: expected params.params to be a table"};
+	}
+
+	sol::table list = raw.as<sol::table>();
+	std::vector<uint8_t> buf;
+
+	for (const auto& kv : raw.as<sol::table>()) {
+		sol::object v = kv.second;
+
+		if (v.is<float>()) {
+			append_bytes(buf, v.as<float>());
+		} else if (v.is<int>()) {
+			append_bytes(buf, v.as<int>());
+		} else if (v.is<bool>()) {
+			buf.push_back(v.as<bool>() ? 1 : 0);
+		} else if (v.is<Vec3>()) {
+			Vec3 vec = v.as<Vec3>();
+			append_bytes(buf, vec[0]);
+			append_bytes(buf, vec[1]);
+			append_bytes(buf, vec[2]);
+		} else if (v.is<Vec4>()) {
+			Vec4 vec = v.as<Vec4>();
+			append_bytes(buf, vec[0]);
+			append_bytes(buf, vec[1]);
+			append_bytes(buf, vec[2]);
+			append_bytes(buf, vec[3]);
+		} else if (v.is<Color>()) {
+			Color c = v.as<Color>();
+			append_bytes(buf, c.r);
+			append_bytes(buf, c.g);
+			append_bytes(buf, c.b);
+			append_bytes(buf, c.a);
+		} else {
+			throw std::runtime_error{"Unsupported param type in material params"};
+		}
+	}
+
+	Material::CreateInfo info{
+		.templateHandle = params["template"],
+		.paramsSize = buf.size(),
+		.params = buf.data(),
+	};
+
+	return Material::create(info);
+}
+
 void y3::initLuaBindings() {
+	// scene management
 	y3_table.set_function("add_global_script",
 						  sol::overload([this](ScriptHandle script) {
 							  this->addGlobalScript(script);
@@ -156,10 +242,6 @@ void y3::initLuaBindings() {
 		removeGlobalScript(name);
 	});
 
-	y3_table.set_function("create_script", sol::overload(&create_script));
-
-	y3_table.set_function("create_camera", &create_camera);
-
 	y3_table.set_function("switch_scene", [this](const std::string& sceneName) {
 		switchScene(sceneName);
 	});
@@ -168,14 +250,24 @@ void y3::initLuaBindings() {
 		destroyScene(sceneName);
 	});
 
-	y3_table.set_function("create_grid_material", create_grid_material);
-	y3_table.set_function("create_color_material", engine::createColorMaterial);
+	// scene graph
+	y3_table.set_function("create_script", &create_script);
+	y3_table.set_function("create_camera", &create_camera);
+	y3_table.set_function("create_mesh", &create_mesh);
 
-	y3_table.set_function("create_mesh", create_mesh);
+	// materials
+	y3_table.set_function("create_material_template", &create_material_template);
+	y3_table.set_function("create_material", &create_material);
+	y3_table.set_function("create_grid_material", &create_grid_material);
+	y3_table.set_function("create_color_material", &engine::createColorMaterial);
+	y3_table.set_function("default_vert_shader", &engine::getDefaultVertShader);
+
+	// primitives
 	y3_table.set_function("get_sphere", engine::getSphere);
 	y3_table.set_function("get_cube", engine::getCube);
 	y3_table.set_function("get_pyramid", engine::getPyramid);
 
+	// window
 	y3_table.set_function("is_key_down", [](int key) {
 		return g_window->isKeyPressed(static_cast<Key>(key));
 	});
